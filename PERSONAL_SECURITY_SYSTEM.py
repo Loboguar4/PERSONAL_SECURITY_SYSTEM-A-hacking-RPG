@@ -1,18 +1,15 @@
 #!/usr/bin/env python3
 """
-Hacking RPG - Versão integrada (atualizada)
-Alterações principais:
- - Regiões agora usam metadados: difficulty, state, crime, hacktivists
- - Metadados evoluem diariamente de forma randômica e com tendências regionais
- - news <region> reflete metadados atualizados
- - travel, assets, eventos e spawn de IAs respondem aos metadados
- - Novos tipos de IA inimiga: Pirata, Federal, Hacktivista
- - Reputações atribuídas conforme tipo de IA removida:
-     Pirata -> +state, +hacktivists
-     Federal -> +crime, +hacktivists
-     Hacktivista -> +hacktivists
- - Mundo age mesmo sem o jogador se mover; eventos diários e IAs proativas
-Aviso: jogo fictício, sem persistência. Não ensina técnicas reais.
+# PERSONAL_SECURITY_SYSTEM - ver. 0.9.1-beta
+# Copyright (C) 2025 Bandeirinha
+# Licensed under the GNU GPL v3.0 or later
+
+NOTAS DE ATUALIZAÇÃO:
+
+- Imposição de limites para jobs e study, exigindo mínimo de foco necessário.
+
+- Um clear_screen() implementado ao iniciar o jogo
+
 """
 
 import time
@@ -20,7 +17,7 @@ import random
 import sys
 import uuid
 import hashlib
-import os # fazer um clear
+import os
 from collections import deque
 from datetime import datetime, timedelta
 
@@ -28,6 +25,14 @@ from datetime import datetime, timedelta
 GAME_OVER_ON_JAIL = True
 START_DATE = datetime(2095, 11, 1, 8, 0)
 RNG_SEED = None  # coloque um int para runs reproduzíveis
+MIN_FOCUS_STUDY = 35
+MIN_FOCUS_JOB = 25
+
+def clear_screen():
+    os.system("cls" if os.name == "nt" else "clear")
+
+#def clear_screen():
+#    print("\033c", end="")
 
 if RNG_SEED is not None:
     random.seed(RNG_SEED)
@@ -59,7 +64,6 @@ class Player:
         self.local_alerts = deque(maxlen=200)  # mensagens importantes recebidas
         self.region = "Local"  # região onde o jogador está baseado/inicialmente
         self.next_job_state_time = None
-
 
     def record_enemy_fingerprint(self, ai):
         fp = ai.fingerprint
@@ -114,10 +118,8 @@ class Player:
         for _ in range(days_passed):
             world.advance_day(self)
 
-
     def in_jail(self):
         return self.jailed_until and self.time < self.jailed_until
-
 
     def _generate_passive_income(self, t0, t1):
         days = (t1.date() - t0.date()).days
@@ -290,6 +292,7 @@ class World:
                 ],
                 "unlock_next": None,
             },
+            # Continuação em forma de diálogo em árvore + reputação
         }
 
         # tendências regionais (padrões que influenciam as flutuações)
@@ -860,7 +863,7 @@ def default_filesystem():
     return {
         "/": {"type": "dir", "children": ["home", "etc", "var"]},
         "/home": {"type": "dir", "children": ["readme.txt"]},
-        "/home/readme.txt": {"type": "file", "content": 'Bem-vindo. Use "scan" para procurar alvos.'},
+        "/home/readme.txt": {"type": "file", "content": 'Bem-vindo.\n\n Use "scan" para procurar alvos.\n Use "job_state" para procurar serviços públicos.'},
         "/etc": {"type": "dir", "children": ["motd"]},
         "/etc/motd": {"type": "file", "content": "Sistema genérico. Jogo fictício."},
         "/var": {"type": "dir", "children": []},
@@ -1219,7 +1222,7 @@ def attempt_special_mission(player, world, mission_id):
             "trace_speed": 1.8,
             "hours": 12,
             "narrative": (
-                "Você infiltra um datacenter que não deveria existir.\n"
+                "Você se infiltra em um datacenter que não deveria existir.\n"
                 "Servidores sem selo, burocracia sem rastro.\n"
                 "Se existe informação escondida, você é quem vai liberar."
             ),
@@ -1829,7 +1832,7 @@ def trigger_random_event(player, world):
 # -------------------- Comandos shell --------------------
 def cmd_help():
     return ("Comandos: help, ls, cd, cat, scan, connect, hack, buy, drop, remove_asset, status, sleep, study, train, jobs, "
-            "assets, map, travel, mission, history, spawn_ai, news, exit")
+            "job_state, assets, map, travel, mission, history, spawn_ai, news, exit")
 
 
 def cmd_ls(player, args):
@@ -2083,7 +2086,7 @@ def cmd_hack(player, args, world):
             return hack_enemy_ai(player, world, ai)
         return f"IA não encontrada: {arg}"
 
-    return "hack: argumento não corresponde a id nem fingerprint"
+    return "hack: argumento não corresponde a uma fingerprint válida."
 
 
 def hack_enemy_ai(player, world, ai):
@@ -2395,24 +2398,35 @@ def cmd_sleep(player, world):
 
 
 def cmd_job(player, world):
+    if player.focus < MIN_FOCUS_JOB:
+        return (
+            "Você está mentalmente exausto para trabalhar.\n"
+            "Forçar agora só chamaria atenção indesejada."
+        )
+
     hrs = random.randint(4, 8)
     player.hours_pass(hrs, world)
+
     pay = random.randint(60, 120)
     player.money += pay
+
     player.focus = max(0.0, player.focus - hrs * 6)
 
+    warning = ""
     if player.focus < 30:
-        warning = "Você está exausto. Sua concentração está muito baixa."
-    else:
-        warning = ""
+        warning = " Você está exausto."
 
     bonus_rep = random.randint(1, 3)
     player.reputation["state"] += bonus_rep
     player.reputation["crime"] = max(0, player.reputation["crime"] - 1)
 
+    # punição se zerar foco
+#    if player.focus == 0:
+#        apply_zero_focus_penalty(player, world)
+
     return (
         f"Trabalho concluído: +${pay}. "
-        f"Concentração atual: {player.focus:.1f}%. {warning}\n"
+        f"Concentração atual: {player.focus:.1f}%.{warning}\n"
         f"Reputação estatal +{bonus_rep}. Crime -1."
     )
 
@@ -2425,7 +2439,7 @@ def cmd_job_state(player, args, world):
     class GovAudit:
         def __init__(self):
             self.security = 7 + int(player.reputation["state"] / 4)
-            self.reward = 6000 + player.reputation["state"] * 400
+            self.reward = 1000 + player.reputation["state"] * 400
             self.trace_speed = 0.7
 
     target = GovAudit()
@@ -2461,12 +2475,20 @@ def cmd_job_state(player, args, world):
 
 
 def cmd_study(player, args, world):
+    if player.focus < MIN_FOCUS_STUDY:
+        return (
+            "Foco insuficiente para estudar.\n"
+            f"Necessário: {MIN_FOCUS_STUDY}%. Atual: {player.focus:.1f}%.\n"
+            "Talvez dormir antes seja uma boa ideia."
+        )
+
     hrs = 4
     if args:
         try:
             hrs = int(args[0])
         except ValueError:
             return "study: argumento inválido"
+
     return study(player, hrs, world)
 
 
@@ -2707,6 +2729,11 @@ def cat(fs, path):
 def repl():
     import time, sys, random
 
+    clear_screen()
+    time.sleep(0.2)
+    sys.stdout.write("\a")
+    sys.stdout.flush()
+
     # ===== SECURE BOOT SHOCK =====
     sys.stdout.write("\a")
     sys.stdout.flush()
@@ -2911,7 +2938,7 @@ def repl():
                     ai.last_action = None
 
         try:
-            prompt = f"{player.name}@simulator:{player.cwd}$ "
+            prompt = f"{player.name}@simulation:{player.cwd}$ "
             try:
                 line = input(prompt)
             except UnicodeDecodeError:

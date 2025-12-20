@@ -1,4 +1,4 @@
-# PERSONAL_SECURITY_SYSTEM - ver. 0.9.0-beta ~~ Desenvolvido pelo Bandeirinha
+# PERSONAL_SECURITY_SYSTEM - ver. 0.9.1-beta ~~ Desenvolvido pelo Bandeirinha
                                                                                                     
                                                                                                     
                                                                                                     
@@ -76,11 +76,40 @@
 
 - **Status:** Em desenvolvimento / não-final — versão experimental.  
 - Pode conter bugs, código incompleto e mudanças de API entre commits.  
-- Sem save/load game.__
-- Código aberto e **redistribuível: licenciado sob **GNU General Public License v3.0 ou posterior** (SPDX: `GPL-3.0-or-later`). Veja a seção *Licença* abaixo.
+- Sem save/load game.
+- Código aberto e **redistribuível: licenciado sob **GNU General Public License v3.0 ou posterior** (SPDX: `GPL-3.0-or-later`). Veja a seção *Licença* abaixo ou consulte o arquivo `LICENSE` para mais detalhes.
 
-NOTA:
-Decidi deixar o jogo em copyleft primeiro porque tudo começou como uma oportunidade para interagir com técnicas relativamente mais complexas dentro da linguagem Python. É um projeto para fins educacionais e de entretenimento. Segundo porque provavelmente não terei tempo até deixar o jogo como eu gostaria, pois a minha saúde física e mental estão atualmente péssimas, junto ao meu financeiro. Mas já fico imensamente satisfeito de ter conseguido publicar uma versão beta pelo menos... Então contarei com a comunidade Open Source para corrigir, melhorar, expandir e espalhar este "worm".
+
+## Licença
+
+PERSONAL_SECURITY_SYSTEM
+Copyright (C) 2025 Bandeirinha
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+
+## Nota do desenvolvedor
+Decidi deixar o jogo em copyleft primeiro porque tudo começou como uma oportunidade para interagir com técnicas relativamente mais complexas dentro da linguagem Python. É um projeto para fins educacionais e de entretenimento. Segundo porque provavelmente não terei tempo até deixar o jogo como eu gostaria, pois a minha saúde física e mental estão atualmente péssimas. Mas já fico imensamente satisfeito de ter conseguido publicar uma versão beta pelo menos... Então contarei com a comunidade Open Source para corrigir, melhorar, expandir e espalhar este worm de Natal. 
+
+    "HO-HO-HOOO!"
+
+    
+## ATUALIZAÇÃO 20/12/2025 (ver. 0.9.1-beta):
+
+- Imposição de limites para jobs e study, exigindo mínimo de foco necessário.
+
+- Um clear_screen() implementado ao iniciar o jogo
 
 ---
 
