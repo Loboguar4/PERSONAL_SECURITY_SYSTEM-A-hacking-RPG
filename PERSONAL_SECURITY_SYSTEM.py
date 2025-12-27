@@ -62,7 +62,7 @@ class Player:
         self.command_history = deque(maxlen=200)
         self.known_enemy_fps = {}   # {fingerprint: {"id":ai.uid, "first_seen": datetime, "meta":{}}}
         self.local_alerts = deque(maxlen=200)  # mensagens importantes recebidas
-        self.region = "Local"  # região onde o jogador está baseado/inicialmente
+        self.region = "NorthAmerica"  # região onde o jogador está baseado/inicialmente
         self.next_job_state_time = None
 
     def record_enemy_fingerprint(self, ai):
@@ -297,7 +297,7 @@ class World:
 
         # tendências regionais (padrões que influenciam as flutuações)
         self.region_trends = {
-            "Local": {"state": 0, "crime": 0, "hacktivists": 0},
+            "NorthAmerica": {"state": 0, "crime": 0, "hacktivists": 0},
             "SouthAmerica": {"state": 1, "crime": 1, "hacktivists": -1},
             "Europe": {"state": 1, "crime": -1, "hacktivists": 1},
             "Asia": {"state": -1, "crime": 1, "hacktivists": 1},
@@ -306,7 +306,7 @@ class World:
 
     def _init_regions(self):
         return {
-            "Local": {"unlocked": True, "difficulty": 1, "state": 2, "crime": 3, "hacktivists": 1},
+            "NorthAmerica": {"unlocked": True, "difficulty": 1, "state": 2, "crime": 3, "hacktivists": 5},
             "SouthAmerica": {"unlocked": False, "difficulty": 2, "state": 3, "crime": 6, "hacktivists": 2},
             "Europe": {"unlocked": False, "difficulty": 3, "state": 6, "crime": 3, "hacktivists": 4},
             "Asia": {"unlocked": False, "difficulty": 4, "state": 4, "crime": 5, "hacktivists": 5},
@@ -520,7 +520,7 @@ class World:
         weights = []
         for t in pool:
             base = 0.2 + player.skills.get("recon", 0) / (getattr(t, "security", 1) + 1)
-            if getattr(t, "region", "") == "Local":
+            if getattr(t, "region", "") == "NorthAmerica":
                 base += 0.3
             base = max(0.02, min(0.95, base * random.uniform(0.7, 1.2)))
             weights.append(base)
@@ -863,7 +863,7 @@ def default_filesystem():
     return {
         "/": {"type": "dir", "children": ["home", "etc", "var"]},
         "/home": {"type": "dir", "children": ["readme.txt"]},
-        "/home/readme.txt": {"type": "file", "content": 'Bem-vindo.\n\n Use "scan" para procurar alvos.\n Use "job_state" para procurar serviços públicos.'},
+        "/home/readme.txt": {"type": "file", "content": 'Bem-vindo.\n\n Use "scan" para procurar alvos.\n Use "job_state" para procurar contratos não tão públicos.'},
         "/etc": {"type": "dir", "children": ["motd"]},
         "/etc/motd": {"type": "file", "content": "Sistema genérico. Jogo fictício."},
         "/var": {"type": "dir", "children": []},
@@ -2235,7 +2235,7 @@ SHOP = {
     "ritaline": {"price": 120.0, "desc": "4 comprimidos. Aumenta foco, mas pode causar vício"},
     "crawler_pack": {"price": 500.0, "desc": "Toolkit profissional de webcrawling. +6 recon"},
     "botnet_worm": {"price": 1800.0, "desc": "Aumenta chance. +20 exploit temporário após 30 dias e baixa renda passiva", "asset": {"type": "botnet_worm", "income_per_day": 30.0}},
-    "vpn_node": {"price": 1200.0, "desc": "Nó VPN. Reduz traces", "asset": {"type": "vpn", "income_per_day": 0.0}},
+    "vpn_node": {"price": 1200.0, "desc": "Nó VPN. Ajuda a proteger ativos", "asset": {"type": "vpn", "income_per_day": 0.0}},
     "rack": {"price": 2000.0, "desc": "Rack em colo. Renda passiva", "asset": {"type": "rack", "income_per_day": 100.0}},
     "datacenter_unit": {"price": 15000.0, "desc": "Unidade de datacenter", "asset": {"type": "datacenter", "income_per_day": 400.0}},
     "honeypot_api": {"price": 2500.0, "desc": "API mensal que detecta honeypots automaticamente", "asset": {"type": "honeypot_api", "income_per_day": 0.0}},
